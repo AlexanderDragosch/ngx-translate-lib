@@ -1,27 +1,31 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
+
 
 @Pipe({
   name: 'translateIn',
 })
 export class TranslateInPipe implements PipeTransform {
-  constructor(private translate: TranslateService, private http: HttpClient) {}
+  constructor(
+    private readonly translateLoader: TranslateLoader,
+    private readonly translate: TranslateService) {}
 
   transform(key: string, lang: string): Observable<string> {
-    const translatein = this.translate.getLangs().includes(lang)
+    const translateIn = this.translate.getLangs().includes(lang)
       ? lang
       : this.translate.currentLang;
-    return this.http.get(`/assets/i18n/${translatein}.json`).pipe(
-      map((res) => {
-        let translation = res;
-        key.split('.').forEach((k) => {
-          translation = translation[k];
-        });
-        return translation as string;
-      })
-    );
+    
+    return this.translateLoader.getTranslation(translateIn)
+      .pipe(
+        map((res) => {
+          let translation = res;
+          key.split('.').forEach((k) => {
+            translation = translation[k];
+          });
+          return translation as string;
+        })
+      );
   }
 }
